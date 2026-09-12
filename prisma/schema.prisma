@@ -1,0 +1,224 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  globalRole   String       @default("USER")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  memberships   Membership[]
+  assignedConvs Conversation[] @relation("AssignedAgent")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?
+  industry    String?
+  logoUrl     String?
+  plan        String   @default("PRO")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships     Membership[]
+  knowledgeBases  KnowledgeBase[]
+  aiConfiguration AIConfiguration?
+  customers       Customer[]
+  conversations   Conversation[]
+  apiKeys         APIKey[]
+  teamInvitations TeamInvitation[]
+  activityLogs    ActivityLog[]
+  usageRecords    UsageRecord[]
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String   @default("AGENT") // OWNER, ADMIN, AGENT, VIEWER
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String?
+  name           String?
+  avatarUrl      String?
+  externalId     String?
+  tags           String?  // JSON string
+  csatAvg        Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastActiveAt   DateTime @default(now())
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+}
+
+model Conversation {
+  id                  String    @id @default(cuid())
+  organizationId      String
+  customerId          String?
+  status              String    @default("OPEN") // OPEN, WAITING, ESCALATED, RESOLVED
+  priority            String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  assignedToId        String?
+  channel             String    @default("WIDGET") // WIDGET, API
+  subject             String?
+  satisfactionScore   Int?
+  satisfactionComment String?
+  isAiResolved        Boolean   @default(false)
+  escalatedAt         DateTime?
+  escalatedReason     String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  closedAt            DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignedTo   User?        @relation("AssignedAgent", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages     Message[]
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderType     String   // CUSTOMER, AI, HUMAN_AGENT, SYSTEM
+  senderId       String?
+  content        String
+  sources        String?  // JSON array string of citations
+  confidence     Float?
+  isInternalNote Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeBase {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sources      KnowledgeSource[]
+}
+
+model KnowledgeSource {
+  id              String    @id @default(cuid())
+  knowledgeBaseId String
+  name            String
+  type            String    // URL, TEXT, FAQ, FILE, MARKDOWN
+  content         String
+  url             String?
+  status          String    @default("READY") // PROCESSING, READY, FAILED, NEEDS_UPDATE
+  chunkCount      Int       @default(0)
+  errorMessage    String?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  knowledgeBase KnowledgeBase    @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+  chunks        KnowledgeChunk[]
+}
+
+model KnowledgeChunk {
+  id         String   @id @default(cuid())
+  sourceId   String
+  chunkIndex Int
+  content    String
+  embedding  String?  // Vector float array JSON string
+  metadata   String?  // JSON string
+
+  source KnowledgeSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model AIConfiguration {
+  id                  String   @id @default(cuid())
+  organizationId      String   @unique
+  agentName           String   @default("Resolve AI")
+  tone                String   @default("professional") // professional, friendly, concise, technical
+  welcomeMessage      String   @default("Hello! How can I help you today?")
+  systemPrompt        String   @default("You are a helpful customer support agent. Answer customer questions based on company knowledge accurately and politely.")
+  businessDescription String?
+  confidenceThreshold Float    @default(0.65)
+  escalationBehavior  String   @default("OFFER_HUMAN")
+  maxResponseLength   Int      @default(250)
+  language            String   @default("en")
+  operatingHours      String?  // JSON string
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model APIKey {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  keyPrefix      String
+  hashedSecret   String
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model TeamInvitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  role           String   @default("AGENT") // ADMIN, AGENT, VIEWER
+  token          String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String
+  details        String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model UsageRecord {
+  id                    String   @id @default(cuid())
+  organizationId        String
+  period                String   // e.g. 2026-09
+  aiMessagesCount       Int      @default(0)
+  conversationsCount    Int      @default(0)
+  knowledgeSourcesCount Int      @default(0)
+  apiRequestsCount      Int      @default(0)
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, period])
+}
