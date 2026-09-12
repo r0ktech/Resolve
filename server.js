@@ -46,8 +46,8 @@ nextApp.prepare().then(() => {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(cookieParser());
 
-  // Static Assets
-  app.use(express.static(path.join(__dirname, 'public')));
+  // Static Assets (disable index: false so Express doesn't intercept Next.js root route)
+  app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
   // API Routes
   app.use('/api/v1/auth', authRoutes);
@@ -62,8 +62,10 @@ nextApp.prepare().then(() => {
   app.use('/api/v1/usage', usageRoutes);
 
   // Next.js page requests
+  const { parse } = require('url');
   app.all('*', (req, res) => {
-    return handle(req, res);
+    const parsedUrl = parse(req.url, true);
+    return handle(req, res, parsedUrl);
   });
 
   server.listen(port, (err) => {
