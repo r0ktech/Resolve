@@ -61,9 +61,9 @@ export default function ApiKeysPage() {
   const handleRevokeKey = async (id) => {
     if (!confirm('Are you sure you want to revoke this API key? Apps using it will lose access.')) return;
     try {
-      const res = await fetch(`/ api / v1 / api - keys / ${id} `, {
+      const res = await fetch(`/api/v1/api-keys/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token} ` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) fetchKeys();
     } catch (err) { }
