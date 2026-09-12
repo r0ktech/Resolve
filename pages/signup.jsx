@@ -26,9 +26,18 @@ export default function SignupPage() {
         body: JSON.stringify({ name, email, password, companyName }),
       });
 
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server response error. Please verify Vercel environment variables.');
+      }
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Signup failed');
+      }
+
+      if (!data.token) {
+        throw new Error('Workspace created, but no token returned');
       }
 
       login(data.token, data.user, data.organization, data.role);

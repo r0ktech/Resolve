@@ -24,9 +24,18 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server response error. Please verify Vercel environment variables.');
+      }
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Login failed');
+      }
+
+      if (!data.token) {
+        throw new Error('Invalid credentials or missing token');
       }
 
       login(data.token, data.user, data.organization, data.role);

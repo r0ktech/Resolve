@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = (authToken, userData, orgData, userRole) => {
+    if (!authToken || typeof authToken !== 'string') return;
     localStorage.setItem('resolve_token', authToken);
     setToken(authToken);
     setUser(userData);
