@@ -393,33 +393,33 @@ export default function MarketingPage() {
           <div className="p-5 rounded-lg border border-surface-200 bg-white">
             <h3 className="font-semibold text-surface-900 text-base">How do I add the chat widget to my website?</h3>
             <p className="text-sm text-surface-600 mt-2 leading-relaxed">
-              Copy a single JavaScript snippet generated for your workspace and paste it before the closing `</body>` tag on your website. It loads asynchronously without slowing down your site.
-          </p>
-        </div>
-        <div className="p-5 rounded-lg border border-surface-200 bg-white">
-          <h3 className="font-semibold text-surface-900 text-base">Can I enforce team permissions?</h3>
-          <p className="text-sm text-surface-600 mt-2 leading-relaxed">
-            Yes. Resolve supports role-based access control (Owner, Admin, Agent, Viewer). Permissions are enforced strictly on both the backend API and frontend interfaces.
-          </p>
-        </div>
-    </div>
-      </section >
-
-    {/* Footer */ }
-    < footer className = "mt-auto border-t border-surface-200 bg-white py-10" >
-      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-surface-500">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-surface-900 text-white font-bold flex items-center justify-center text-xs">
-            R
+              Copy a single JavaScript snippet generated for your workspace and paste it before the closing <code className="font-mono text-2xs bg-surface-100 px-1 py-0.5 rounded">&lt;/body&gt;</code> tag on your website. It loads asynchronously without slowing down your site.
+            </p>
           </div>
-          <span className="font-semibold text-surface-900 text-sm">Resolve</span>
-          <span>— Turn customer questions into resolved conversations.</span>
+          <div className="p-5 rounded-lg border border-surface-200 bg-white">
+            <h3 className="font-semibold text-surface-900 text-base">Can I enforce team permissions?</h3>
+            <p className="text-sm text-surface-600 mt-2 leading-relaxed">
+              Yes. Resolve supports role-based access control (Owner, Admin, Agent, Viewer). Permissions are enforced strictly on both the backend API and frontend interfaces.
+            </p>
+          </div>
         </div>
-        <div>
-          &copy; {new Date().getFullYear()} Resolve Inc. Production B2B SaaS Platform.
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-surface-200 bg-white py-10">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-surface-500">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-surface-900 text-white font-bold flex items-center justify-center text-xs">
+              R
+            </div>
+            <span className="font-semibold text-surface-900 text-sm">Resolve</span>
+            <span>— Turn customer questions into resolved conversations.</span>
+          </div>
+          <div>
+            &copy; {new Date().getFullYear()} Resolve Inc. Production B2B SaaS Platform.
+          </div>
         </div>
-      </div>
-      </footer >
-    </div >
+      </footer>
+    </div>
   );
 }
